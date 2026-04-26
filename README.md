@@ -45,6 +45,14 @@ Webhook URL is not required for this project. This is a pull-based sync tool.
 
 ## Install
 
+For Hermes Agent installation, see the dedicated guide:
+
+```text
+SETUP.md
+```
+
+That file is designed so you can point Hermes Agent at it and ask Hermes to install this plugin for you.
+
 ### CLI only
 
 ```bash
@@ -88,9 +96,28 @@ Set credentials in your shell or `.env` loaded by your wrapper:
 
 ```bash
 export WHOOP_CLIENT_ID='...'
-export WHOOP_CLIENT_SECRET='...'
+export WHOOP_CLIENT_SECRET='***'
 export WHOOP_REDIRECT_URI='http://127.0.0.1:8787/callback'
 ```
+
+When running as a Hermes Agent plugin, put the same variables in Hermes' env file instead:
+
+```text
+~/.hermes/.env
+```
+
+Example `~/.hermes/.env` entries:
+
+```bash
+WHOOP_CLIENT_ID=your_whoop_client_id
+WHOOP_CLIENT_SECRET=replace-me
+WHOOP_REDIRECT_URI=http://127.0.0.1:8787/callback
+WHOOP_AUTO_REFRESH_ON_LATEST=true
+WHOOP_REFRESH_MAX_AGE_MINUTES=30
+WHOOP_REFRESH_DAYS=7
+```
+
+Restart Hermes gateway, or start a fresh Hermes CLI session, after changing `~/.hermes/.env`.
 
 Storage location:
 
@@ -111,6 +138,8 @@ What these mean:
 - `WHOOP_AUTO_REFRESH_ON_LATEST=true`: plain `whoop-local latest` may fetch first if the cache is stale. If false or unset, use `whoop-local latest --refresh-if-stale` to opt in per call.
 - `WHOOP_REFRESH_MAX_AGE_MINUTES=30`: if `latest.json` is missing or older than 30 minutes, refresh first.
 - `WHOOP_REFRESH_DAYS=7`: when refreshing, fetch the last 7 days so late sleep/recovery/workout edits are captured.
+
+For Hermes plugin installs, these freshness variables can live in `~/.hermes/.env` together with the WHOOP credentials.
 
 The Hermes plugin defaults `whoop_latest` to `refresh_if_stale=true`, `max_age_minutes=30`, and `refresh_days=7`, so time-sensitive chat queries self-heal even if the daily cron missed.
 
