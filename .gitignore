@@ -1,0 +1,29 @@
+# secrets
+.env
+*.env
+
+# local WHOOP data
+token.json
+latest.json
+backfill_index.json
+backfill.log
+whoop.sqlite
+raw/
+*.sqlite
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
