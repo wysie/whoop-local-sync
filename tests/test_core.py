@@ -8,6 +8,7 @@ import pytest
 from whoop_local_sync.backfill import BackfillConfig, chunk_backwards, should_stop_for_empty_streak
 from whoop_local_sync.oauth import build_auth_url, token_payload
 from whoop_local_sync.storage import LocalStore, redact_secret
+from whoop_local_sync.cli import should_refresh_latest
 
 
 def test_build_auth_url_uses_redirect_scopes_and_state():
@@ -75,7 +76,26 @@ def test_local_store_writes_chunk_index_and_sqlite_without_leaking_secret(tmp_pa
 
 
 def test_redact_secret_masks_sensitive_keys():
-    obj = {"client_secret": "abc", "nested": {"refresh_token": "tok", "safe": "ok"}}
+    obj = {"client_secret": "abc", "nested": {"refresh_token": "***", "safe": "ok"}}
     assert redact_secret(obj)["client_secret"] == "[REDACTED]"
     assert redact_secret(obj)["nested"]["refresh_token"] == "[REDACTED]"
     assert redact_secret(obj)["nested"]["safe"] == "ok"
+
+
+def test_should_refresh_latest_when_missing_or_stale(tmp_path):
+    latest = tmp_path / "latest.json"
+    now = 1_000_000
+    assert should_refresh_latest(latest, max_age_minutes=30, now=now) is True
+
+    latest.write_text("{}")
+    os.utime(latest, (now - 10 * 60, now - 10 * 60))
+    assert should_refresh_latest(latest, max_age_minutes=30, now=now) is False
+
+    os.utime(latest, (now - 31 * 60, now - 31 * 60))
+    assert should_refresh_latest(latest, max_age_minutes=30, now=now) is True
+
+
+def test_should_refresh_latest_can_be_disabled(tmp_path):
+    latest = tmp_path / "latest.json"
+    now = 1_000_000
+    assert should_refresh_latest(latest, max_age_minutes=30, now=now, enabled=False) is False

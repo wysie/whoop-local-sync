@@ -17,6 +17,7 @@ This project was built for people who want their WHOOP data stored locally inste
 - Dedupe by `(endpoint, record_id)`
 - Local-only by default
 - Optional Hermes Agent plugin example under `plugins/hermes/`
+- Stale-cache guard for `latest`: refreshes before answering when cache is missing or old
 
 ## WHOOP Developer App Setup
 
@@ -97,6 +98,22 @@ Storage location:
 export WHOOP_DATA_DIR="$HOME/.whoop-local-sync"
 ```
 
+Freshness policy for `whoop-local latest --refresh-if-stale` and the Hermes `whoop_latest` tool:
+
+```bash
+export WHOOP_AUTO_REFRESH_ON_LATEST=true
+export WHOOP_REFRESH_MAX_AGE_MINUTES=30
+export WHOOP_REFRESH_DAYS=7
+```
+
+What these mean:
+
+- `WHOOP_AUTO_REFRESH_ON_LATEST=true`: plain `whoop-local latest` may fetch first if the cache is stale. If false or unset, use `whoop-local latest --refresh-if-stale` to opt in per call.
+- `WHOOP_REFRESH_MAX_AGE_MINUTES=30`: if `latest.json` is missing or older than 30 minutes, refresh first.
+- `WHOOP_REFRESH_DAYS=7`: when refreshing, fetch the last 7 days so late sleep/recovery/workout edits are captured.
+
+The Hermes plugin defaults `whoop_latest` to `refresh_if_stale=true`, `max_age_minutes=30`, and `refresh_days=7`, so time-sensitive chat queries self-heal even if the daily cron missed.
+
 If `WHOOP_DATA_DIR` is not set, the CLI defaults to:
 
 ```text
@@ -149,6 +166,12 @@ Read latest summary:
 whoop-local latest
 ```
 
+Read latest summary and fetch first if the cache is missing or older than the configured threshold:
+
+```bash
+whoop-local latest --refresh-if-stale --max-age-minutes 30 --refresh-days 7
+```
+
 Read latest raw JSON:
 
 ```bash
@@ -172,13 +195,21 @@ Why not stop after one empty chunk? WHOOP history can have wear gaps, subscripti
 
 ## Cron Example
 
-Daily recent sync:
+Recommended MVP: one daily recent sync after sleep/recovery usually settles:
 
 ```cron
 30 7 * * * WHOOP_DATA_DIR=$HOME/.whoop-local-sync /path/to/whoop-local fetch --days 7
 ```
 
-Weekly slow backfill/resume:
+For Hermes installs, use the Hermes venv binary and local Hermes data dir:
+
+```cron
+30 7 * * * WHOOP_DATA_DIR=$HOME/.hermes/whoop $HOME/.hermes/hermes-agent/venv/bin/whoop-local fetch --days 7
+```
+
+You usually do not need webhooks for this project. Cron keeps the local cache warm, and `latest --refresh-if-stale` handles on-demand freshness.
+
+Optional weekly slow backfill/resume for reconciliation:
 
 ```cron
 0 3 * * 0 WHOOP_DATA_DIR=$HOME/.whoop-local-sync /path/to/whoop-local backfill --max-chunks 24 --sleep-seconds 2

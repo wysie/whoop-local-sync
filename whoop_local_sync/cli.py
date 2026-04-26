@@ -43,6 +43,43 @@ def client_from_token(store: LocalStore) -> WhoopClient:
     return WhoopClient(access_token=tok["access_token"], client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri)
 
 
+def env_bool(name: str, default: bool = False) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def env_int(name: str, default: int) -> int:
+    value = os.environ.get(name)
+    if value is None or not value.strip():
+        return default
+    return int(value)
+
+
+def should_refresh_latest(latest_file: Path, *, max_age_minutes: int, now: float | None = None, enabled: bool = True) -> bool:
+    if not enabled:
+        return False
+    if not latest_file.exists():
+        return True
+    now = time.time() if now is None else now
+    age_seconds = now - latest_file.stat().st_mtime
+    return age_seconds > max_age_minutes * 60
+
+
+def fetch_recent(store: LocalStore, *, days: int, start: str | None = None, end: str | None = None) -> dict:
+    end_dt = parse_iso(end) if end else dt.datetime.now(dt.timezone.utc)
+    start_dt = parse_iso(start) if start else end_dt - dt.timedelta(days=days)
+    data = client_from_token(store).fetch_range(iso_z(start_dt), iso_z(end_dt))
+    errors = endpoint_errors(data)
+    if errors:
+        raise SystemExit(json.dumps({"ok": False, "errors": errors}, indent=2))
+    store.save_latest(data)
+    store.write_chunk(data, iso_z(start_dt), iso_z(end_dt), update_latest=True)
+    store.upsert_records(data)
+    return data
+
+
 def cmd_auth_url(args):
     client_id, _, redirect_uri = load_creds()
     print(build_auth_url(client_id=client_id, redirect_uri=redirect_uri, scopes=args.scopes or DEFAULT_SCOPES, state=args.state))
@@ -61,15 +98,7 @@ def cmd_callback(args):
 
 def cmd_fetch(args):
     store = LocalStore(data_dir())
-    end = parse_iso(args.end) if args.end else dt.datetime.now(dt.timezone.utc)
-    start = parse_iso(args.start) if args.start else end - dt.timedelta(days=args.days)
-    data = client_from_token(store).fetch_range(iso_z(start), iso_z(end))
-    errors = endpoint_errors(data)
-    if errors:
-        raise SystemExit(json.dumps({"ok": False, "errors": errors}, indent=2))
-    store.save_latest(data)
-    store.write_chunk(data, iso_z(start), iso_z(end), update_latest=True)
-    store.upsert_records(data)
+    data = fetch_recent(store, days=args.days, start=args.start, end=args.end)
     print(json.dumps({"ok": True, "summary": compact_summary(data), "record_count": store.record_count()}, indent=2))
 
 
@@ -132,6 +161,11 @@ def cmd_status(args):
 
 def cmd_latest(args):
     store = LocalStore(data_dir())
+    auto_refresh = args.refresh_if_stale or env_bool("WHOOP_AUTO_REFRESH_ON_LATEST", False)
+    max_age_minutes = args.max_age_minutes if args.max_age_minutes is not None else env_int("WHOOP_REFRESH_MAX_AGE_MINUTES", 30)
+    refresh_days = args.refresh_days if args.refresh_days is not None else env_int("WHOOP_REFRESH_DAYS", 7)
+    if should_refresh_latest(store.latest_file, max_age_minutes=max_age_minutes, enabled=auto_refresh):
+        fetch_recent(store, days=refresh_days)
     if not store.latest_file.exists():
         raise SystemExit("No latest.json found; run fetch first")
     data = json.loads(store.latest_file.read_text())
@@ -176,6 +210,9 @@ def main(argv=None):
     p.set_defaults(func=cmd_status)
     p = sub.add_parser("latest")
     p.add_argument("--json", action="store_true")
+    p.add_argument("--refresh-if-stale", action="store_true", help="Fetch first when latest.json is missing or older than the max age")
+    p.add_argument("--max-age-minutes", type=int, help="Stale threshold; defaults to WHOOP_REFRESH_MAX_AGE_MINUTES or 30")
+    p.add_argument("--refresh-days", type=int, help="Days to fetch on stale refresh; defaults to WHOOP_REFRESH_DAYS or 7")
     p.set_defaults(func=cmd_latest)
     p = sub.add_parser("install-hermes-plugin", help="Install bundled Hermes plugin into ~/.hermes/plugins/whoop-local-sync")
     p.add_argument("--hermes-home", help="Hermes home directory; defaults to ~/.hermes")

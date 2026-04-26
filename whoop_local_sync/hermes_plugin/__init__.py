@@ -102,8 +102,8 @@ def register(ctx):
     ctx.register_tool(
         name="whoop_latest",
         toolset=_TOOLSET,
-        schema={"name": "whoop_latest", "description": "Read latest local WHOOP summary.", "parameters": {"type": "object", "properties": {"json": {"type": "boolean", "default": False}}}},
-        handler=lambda args=None, **kw: _json(_run(["latest"] + (["--json"] if (args or {}).get("json") else []), timeout=60)),
+        schema={"name": "whoop_latest", "description": "Read latest local WHOOP summary, auto-refreshing first when cache is stale if enabled.", "parameters": {"type": "object", "properties": {"json": {"type": "boolean", "default": False}, "refresh_if_stale": {"type": "boolean", "default": True}, "max_age_minutes": {"type": "integer", "default": 30}, "refresh_days": {"type": "integer", "default": 7}}}},
+        handler=lambda args=None, **kw: _json(_run(["latest"] + (["--json"] if (args or {}).get("json") else []) + (["--refresh-if-stale"] if (args or {}).get("refresh_if_stale", True) else []) + (["--max-age-minutes", str((args or {}).get("max_age_minutes"))] if (args or {}).get("max_age_minutes") is not None else []) + (["--refresh-days", str((args or {}).get("refresh_days"))] if (args or {}).get("refresh_days") is not None else []), timeout=300)),
         check_fn=lambda: True,
         requires_env=[],
         description="Read latest WHOOP data",

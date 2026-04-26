@@ -25,3 +25,21 @@ cp -R plugins/hermes/* ~/.hermes/plugins/whoop-local-sync/
 ```
 
 Then enable `whoop-local-sync` under `plugins.enabled` and add the `whoop` toolset to your target platform toolsets.
+
+## Freshness
+
+`whoop_latest` calls `whoop-local latest --refresh-if-stale` by default.
+
+Default behavior:
+
+- cache missing: fetch first
+- cache older than 30 minutes: fetch first
+- refresh window: last 7 days
+
+Override per tool call with `refresh_if_stale`, `max_age_minutes`, and `refresh_days`, or set environment defaults:
+
+```bash
+WHOOP_AUTO_REFRESH_ON_LATEST=true
+WHOOP_REFRESH_MAX_AGE_MINUTES=30
+WHOOP_REFRESH_DAYS=7
+```
