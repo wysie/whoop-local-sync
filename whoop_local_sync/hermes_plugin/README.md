@@ -5,7 +5,7 @@ This plugin is bundled inside the `whoop-local-sync` Python package.
 Recommended install:
 
 ```bash
-~/.hermes/hermes-agent/venv/bin/python -m pip install "git+https://github.com/YOUR_USER/whoop-local-sync.git"
+~/.hermes/hermes-agent/venv/bin/python -m pip install "git+https://github.com/Wysie/whoop-local-sync.git"
 ~/.hermes/hermes-agent/venv/bin/whoop-local install-hermes-plugin --enable --platform cli --platform whatsapp --platform telegram
 ```
 
