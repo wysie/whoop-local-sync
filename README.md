@@ -44,7 +44,36 @@ Webhook URL is not required for this project. This is a pull-based sync tool.
 
 ## Install
 
-Development install:
+### CLI only
+
+```bash
+python -m pip install "git+https://github.com/YOUR_USER/whoop-local-sync.git"
+```
+
+### Hermes Agent plugin
+
+Install into Hermes' own Python environment, then let `whoop-local` install and enable the bundled Hermes plugin:
+
+```bash
+~/.hermes/hermes-agent/venv/bin/python -m pip install "git+https://github.com/YOUR_USER/whoop-local-sync.git"
+~/.hermes/hermes-agent/venv/bin/whoop-local install-hermes-plugin --enable --platform cli --platform whatsapp --platform telegram
+```
+
+The installer copies bundled plugin files into:
+
+```text
+~/.hermes/plugins/whoop-local-sync
+```
+
+With `--enable`, it also backs up and patches `~/.hermes/config.yaml`:
+
+- adds `whoop-local-sync` to `plugins.enabled`
+- adds the `whoop` toolset to the selected platforms
+- records `whoop` under `known_plugin_toolsets`
+
+Restart Hermes gateway or start a fresh CLI session after installation.
+
+### Development install
 
 ```bash
 git clone https://github.com/YOUR_USER/whoop-local-sync.git

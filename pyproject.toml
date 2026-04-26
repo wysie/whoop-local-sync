@@ -11,7 +11,7 @@ requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [{name = "Agent Hammy"}]
 keywords = ["whoop", "health", "oauth", "local-first", "hermes-agent"]
-dependencies = []
+dependencies = ["PyYAML>=6.0"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
@@ -22,3 +22,9 @@ whoop-local = "whoop_local_sync.cli:main"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.hatch.build.targets.wheel]
+packages = ["whoop_local_sync"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"whoop_local_sync/hermes_plugin" = "whoop_local_sync/hermes_plugin"

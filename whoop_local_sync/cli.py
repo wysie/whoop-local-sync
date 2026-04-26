@@ -138,6 +138,17 @@ def cmd_latest(args):
     print(json.dumps(data if args.json else compact_summary(data), indent=2))
 
 
+def cmd_install_hermes_plugin(args):
+    from .hermes_install import install_hermes_plugin
+
+    result = install_hermes_plugin(
+        hermes_home=Path(args.hermes_home).expanduser() if args.hermes_home else None,
+        enable=args.enable,
+        platforms=args.platform or ["cli", "whatsapp", "telegram"],
+    )
+    print(json.dumps(result, indent=2))
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="whoop-local")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -166,6 +177,11 @@ def main(argv=None):
     p = sub.add_parser("latest")
     p.add_argument("--json", action="store_true")
     p.set_defaults(func=cmd_latest)
+    p = sub.add_parser("install-hermes-plugin", help="Install bundled Hermes plugin into ~/.hermes/plugins/whoop-local-sync")
+    p.add_argument("--hermes-home", help="Hermes home directory; defaults to ~/.hermes")
+    p.add_argument("--enable", action="store_true", help="Patch config.yaml to enable plugin and whoop toolset")
+    p.add_argument("--platform", action="append", help="Platform to enable whoop toolset for; repeatable. Defaults to cli, whatsapp, telegram")
+    p.set_defaults(func=cmd_install_hermes_plugin)
     args = parser.parse_args(argv)
     args.func(args)
 

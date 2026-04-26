@@ -1,0 +1,18 @@
+name: whoop-local-sync
+version: "0.1.0"
+description: "Local-first WHOOP sync/backfill tools via whoop-local-sync"
+author: Agent Hammy
+requires_env: []
+optional_env:
+  - WHOOP_CLIENT_ID
+  - WHOOP_CLIENT_SECRET
+  - WHOOP_REDIRECT_URI
+  - WHOOP_DATA_DIR
+provides_tools:
+  - whoop_status
+  - whoop_auth_url
+  - whoop_callback
+  - whoop_fetch
+  - whoop_backfill
+  - whoop_latest
+provides_hooks: []
