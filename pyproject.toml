@@ -9,7 +9,7 @@ description = "Local-first WHOOP OAuth sync, backfill, and Hermes plugin helpers
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-authors = [{name = "Agent Hammy"}]
+authors = [{name = "WHOOP Local Sync contributors"}]
 keywords = ["whoop", "health", "oauth", "local-first", "hermes-agent"]
 dependencies = ["PyYAML>=6.0"]
 

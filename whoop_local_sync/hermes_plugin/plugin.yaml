@@ -1,7 +1,7 @@
 name: whoop-local-sync
 version: "0.1.0"
 description: "Local-first WHOOP sync/backfill tools via whoop-local-sync"
-author: Agent Hammy
+author: WHOOP Local Sync contributors
 requires_env: []
 optional_env:
   - WHOOP_CLIENT_ID

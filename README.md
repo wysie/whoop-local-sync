@@ -43,15 +43,17 @@ read:workout
 
 Webhook URL is not required for this project. This is a pull-based sync tool.
 
-## Install
+## Quickstart
 
-For Hermes Agent installation, see the dedicated guide:
+### Agent-assisted Hermes setup
+
+If you use Hermes Agent or another local coding agent, point it at this repository and ask it to follow [`AGENTS.md`](AGENTS.md). That file is the agent-facing setup playbook: install into Hermes' Python environment, enable the bundled plugin, complete OAuth, run an initial fetch/backfill, and verify the result without exposing secrets.
+
+Suggested prompt:
 
 ```text
-SETUP.md
+Set up whoop-local-sync for my Hermes Agent. Follow AGENTS.md. Install into Hermes' Python environment, enable the plugin, help me complete OAuth, run a recent fetch and bounded backfill, and verify status.
 ```
-
-That file is designed so you can point Hermes Agent at it and ask Hermes to install this plugin for you.
 
 ### CLI only
 
