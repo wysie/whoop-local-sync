@@ -1,5 +1,7 @@
 # whoop-local-sync
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/H2H1ZAPL)
+
 Local-first WHOOP OAuth sync, historical backfill, SQLite archiving, and optional Hermes Agent plugin wrapper.
 
 This project was built for people who want their WHOOP data stored locally instead of pushed into a SaaS dashboard or long-term LLM memory.
